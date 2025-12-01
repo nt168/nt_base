@@ -15,21 +15,21 @@ int main()
 
 	char *error = NULL;
 
-	if (SUCCEED != phy_locks_create(&error))
+	if (SUCCEED != nt_locks_create(&error))
 	{
-		phy_error("cannot create locks: %s", error);
-		phy_free(error);
+		nt_error("cannot create locks: %s", error);
+		nt_free(error);
 		exit(EXIT_FAILURE);
 	}
 
-	if (SUCCEED != phy_open_log(CONFIG_LOG_TYPE, CONFIG_LOG_LEVEL, CONFIG_LOG_FILE, &error))
+	if (SUCCEED != nt_open_log(CONFIG_LOG_TYPE, CONFIG_LOG_LEVEL, CONFIG_LOG_FILE, &error))
 	{
-		phy_error("cannot open log: %s", error);
-		phy_free(error);
+		nt_error("cannot open log: %s", error);
+		nt_free(error);
 		exit(EXIT_FAILURE);
 	}
 
-//	phy_log(LOG_LEVEL_TRACE, "Starting Phy Server. Phy %s (revision %s).", "1.5", ".007");
-	phy_log(LOG_LEVEL_WARNING, "Starting Phy Server. Phy %s (revision %s).", "1.5", ".007");
+//	nt_log(LOG_LEVEL_TRACE, "Starting Nt Server. Nt %s (revision %s).", "1.5", ".007");
+	nt_log(LOG_LEVEL_WARNING, "Starting Nt Server. Nt %s (revision %s).", "1.5", ".007");
 	return 0;
 }

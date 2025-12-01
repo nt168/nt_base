@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "nt_time.h": "c",
+        "ntcompress.h": "c",
+        "nttypes.h": "c",
+        "ntcrypto.h": "c",
+        "nthash.h": "c",
+        "nt_num.h": "c",
+        "nt_crypto.h": "c",
+        "nt_str.h": "c",
+        "nt_hash.h": "c",
+        "nt_comms.h": "c",
+        "nt_types.h": "c"
+    }
+}

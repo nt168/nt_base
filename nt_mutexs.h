@@ -1,77 +1,77 @@
-#ifndef PHY_MUTEXS_H
-#define PHY_MUTEXS_H
+#ifndef NT_MUTEXS_H
+#define NT_MUTEXS_H
 
 #include <semaphore.h>
 
 //#define HAVE_PTHREAD_PROCESS_SHARED
 
 #ifdef _WINDOWS
-#	define PHY_MUTEX_NULL		NULL
+#	define NT_MUTEX_NULL		NULL
 
-#	define PHY_MUTEX_LOG		phy_mutex_create_per_process_name(L"PHY_MUTEX_LOG")
-#	define PHY_MUTEX_PERFSTAT	phy_mutex_create_per_process_name(L"PHY_MUTEX_PERFSTAT")
+#	define NT_MUTEX_LOG		nt_mutex_create_per_process_name(L"NT_MUTEX_LOG")
+#	define NT_MUTEX_PERFSTAT	nt_mutex_create_per_process_name(L"NT_MUTEX_PERFSTAT")
 
-typedef wchar_t * phy_mutex_name_t;
-typedef HANDLE phy_mutex_t;
+typedef wchar_t * nt_mutex_name_t;
+typedef HANDLE nt_mutex_t;
 #else	/* not _WINDOWS */
 typedef enum
 {
-	PHY_MUTEX_LOG = 0,
-	PHY_MUTEX_COUNT
+	NT_MUTEX_LOG = 0,
+	NT_MUTEX_COUNT
 }
-phy_mutex_name_t;
+nt_mutex_name_t;
 
 typedef enum
 {
-	PHY_RWLOCK_CONFIG = 0,
-	PHY_RWLOCK_VALUECACHE,
-	PHY_RWLOCK_COUNT,
+	NT_RWLOCK_CONFIG = 0,
+	NT_RWLOCK_VALUECACHE,
+	NT_RWLOCK_COUNT,
 }
-phy_rwlock_name_t;
+nt_rwlock_name_t;
 
 #ifdef HAVE_PTHREAD_PROCESS_SHARED
-#	define PHY_MUTEX_NULL			NULL
-#	define PHY_RWLOCK_NULL			NULL
+#	define NT_MUTEX_NULL			NULL
+#	define NT_RWLOCK_NULL			NULL
 
-#	define phy_rwlock_wrlock(rwlock)	__phy_rwlock_wrlock(__FILE__, __LINE__, rwlock)
-#	define phy_rwlock_rdlock(rwlock)	__phy_rwlock_rdlock(__FILE__, __LINE__, rwlock)
-#	define phy_rwlock_unlock(rwlock)	__phy_rwlock_unlock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_wrlock(rwlock)	__nt_rwlock_wrlock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_rdlock(rwlock)	__nt_rwlock_rdlock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_unlock(rwlock)	__nt_rwlock_unlock(__FILE__, __LINE__, rwlock)
 
-typedef pthread_mutex_t * phy_mutex_t;
-typedef pthread_rwlock_t * phy_rwlock_t;
+typedef pthread_mutex_t * nt_mutex_t;
+typedef pthread_rwlock_t * nt_rwlock_t;
 
-void	__phy_rwlock_wrlock(const char *filename, int line, phy_rwlock_t rwlock);
-void	__phy_rwlock_rdlock(const char *filename, int line, phy_rwlock_t rwlock);
-void	__phy_rwlock_unlock(const char *filename, int line, phy_rwlock_t rwlock);
-void	phy_rwlock_destroy(phy_rwlock_t *rwlock);
-void	phy_locks_disable(void);
+void	__nt_rwlock_wrlock(const char *filename, int line, nt_rwlock_t rwlock);
+void	__nt_rwlock_rdlock(const char *filename, int line, nt_rwlock_t rwlock);
+void	__nt_rwlock_unlock(const char *filename, int line, nt_rwlock_t rwlock);
+void	nt_rwlock_destroy(nt_rwlock_t *rwlock);
+void	nt_locks_disable(void);
 #else	/* fallback to semaphores if read-write locks are not available */
-#	define PHY_RWLOCK_NULL				-1
-#	define PHY_MUTEX_NULL				-1
+#	define NT_RWLOCK_NULL				-1
+#	define NT_MUTEX_NULL				-1
 
-#	define phy_rwlock_wrlock(rwlock)		__phy_mutex_lock(__FILE__, __LINE__, rwlock)
-#	define phy_rwlock_rdlock(rwlock)		__phy_mutex_lock(__FILE__, __LINE__, rwlock)
-#	define phy_rwlock_unlock(rwlock)		__phy_mutex_unlock(__FILE__, __LINE__, rwlock)
-#	define phy_rwlock_destroy(rwlock)		phy_mutex_destroy(rwlock)
+#	define nt_rwlock_wrlock(rwlock)		__nt_mutex_lock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_rdlock(rwlock)		__nt_mutex_lock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_unlock(rwlock)		__nt_mutex_unlock(__FILE__, __LINE__, rwlock)
+#	define nt_rwlock_destroy(rwlock)		nt_mutex_destroy(rwlock)
 
-typedef int phy_mutex_t;
-typedef int phy_rwlock_t;
+typedef int nt_mutex_t;
+typedef int nt_rwlock_t;
 #endif
-int		phy_locks_create(char **error);
-int		phy_rwlock_create(phy_rwlock_t *rwlock, phy_rwlock_name_t name, char **error);
-phy_mutex_t	phy_mutex_addr_get(phy_mutex_name_t mutex_name);
-phy_rwlock_t	phy_rwlock_addr_get(phy_rwlock_name_t rwlock_name);
+int		nt_locks_create(char **error);
+int		nt_rwlock_create(nt_rwlock_t *rwlock, nt_rwlock_name_t name, char **error);
+nt_mutex_t	nt_mutex_addr_get(nt_mutex_name_t mutex_name);
+nt_rwlock_t	nt_rwlock_addr_get(nt_rwlock_name_t rwlock_name);
 #endif	/* _WINDOWS */
-#	define phy_mutex_lock(mutex)		__phy_mutex_lock(__FILE__, __LINE__, mutex)
-#	define phy_mutex_unlock(mutex)		__phy_mutex_unlock(__FILE__, __LINE__, mutex)
+#	define nt_mutex_lock(mutex)		__nt_mutex_lock(__FILE__, __LINE__, mutex)
+#	define nt_mutex_unlock(mutex)		__nt_mutex_unlock(__FILE__, __LINE__, mutex)
 
-int	phy_mutex_create(phy_mutex_t *mutex, phy_mutex_name_t name, char **error);
-void	__phy_mutex_lock(const char *filename, int line, phy_mutex_t mutex);
-void	__phy_mutex_unlock(const char *filename, int line, phy_mutex_t mutex);
-void	phy_mutex_destroy(phy_mutex_t *mutex);
+int	nt_mutex_create(nt_mutex_t *mutex, nt_mutex_name_t name, char **error);
+void	__nt_mutex_lock(const char *filename, int line, nt_mutex_t mutex);
+void	__nt_mutex_unlock(const char *filename, int line, nt_mutex_t mutex);
+void	nt_mutex_destroy(nt_mutex_t *mutex);
 
 #ifdef _WINDOWS
-phy_mutex_name_t	phy_mutex_create_per_process_name(const phy_mutex_name_t prefix);
+nt_mutex_name_t	nt_mutex_create_per_process_name(const nt_mutex_name_t prefix);
 #endif
 
-#endif	/* PHY_MUTEXS_H */
+#endif	/* NT_MUTEXS_H */

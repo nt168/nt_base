@@ -6,8 +6,8 @@
 
 static char		log_filename[MAX_STRING_LEN];
 static int		log_type = LOG_TYPE_UNDEFINED;
-static phy_mutex_t	log_access = PHY_MUTEX_NULL;
-int			phy_log_level = LOG_LEVEL_WARNING;
+static nt_mutex_t	log_access = NT_MUTEX_NULL;
+int			nt_log_level = LOG_LEVEL_WARNING;
 
 char	*CONFIG_LOG_FILE	= "/tmp/nt_base.log";
 char	*CONFIG_LOG_TYPE_STR	= NULL;
@@ -22,14 +22,14 @@ extern const char	syslog_app_name[];
 #	define UNLOCK_LOG	unlock_log()
 
 
-#define PHY_MESSAGE_BUF_SIZE	1024
+#define NT_MESSAGE_BUF_SIZE	1024
 
-#	define PHY_DEV_NULL	"/dev/null"
+#	define NT_DEV_NULL	"/dev/null"
 
 #ifndef _WINDOWS
-const char	*phy_get_log_level_string(void)
+const char	*nt_get_log_level_string(void)
 {
-	switch (phy_log_level)
+	switch (nt_log_level)
 	{
 		case LOG_LEVEL_EMPTY:
 			return "0 (none)";
@@ -49,30 +49,30 @@ const char	*phy_get_log_level_string(void)
 	exit(EXIT_FAILURE);
 }
 
-int	phy_increase_log_level(void)
+int	nt_increase_log_level(void)
 {
-	if (LOG_LEVEL_TRACE == phy_log_level)
+	if (LOG_LEVEL_TRACE == nt_log_level)
 		return FAIL;
 
-	phy_log_level = phy_log_level + 1;
+	nt_log_level = nt_log_level + 1;
 
 	return SUCCEED;
 }
 
-int	phy_decrease_log_level(void)
+int	nt_decrease_log_level(void)
 {
-	if (LOG_LEVEL_EMPTY == phy_log_level)
+	if (LOG_LEVEL_EMPTY == nt_log_level)
 		return FAIL;
 
-	phy_log_level = phy_log_level - 1;
+	nt_log_level = nt_log_level - 1;
 
 	return SUCCEED;
 }
 #endif
 
-int	phy_redirect_stdio(const char *filename)
+int	nt_redirect_stdio(const char *filename)
 {
-	const char	default_file[] = PHY_DEV_NULL;
+	const char	default_file[] = NT_DEV_NULL;
 	int		open_flags = O_WRONLY, fd;
 
 	if (NULL != filename && '\0' != *filename)
@@ -82,28 +82,28 @@ int	phy_redirect_stdio(const char *filename)
 
 	if (-1 == (fd = open(filename, open_flags, 0666)))
 	{
-		phy_error("cannot open \"%s\": %s", filename, phy_strerror(errno));
+		nt_error("cannot open \"%s\": %s", filename, nt_strerror(errno));
 		return FAIL;
 	}
 
 	fflush(stdout);
 	if (-1 == dup2(fd, STDOUT_FILENO))
-		phy_error("cannot redirect stdout to \"%s\": %s", filename, phy_strerror(errno));
+		nt_error("cannot redirect stdout to \"%s\": %s", filename, nt_strerror(errno));
 
 	fflush(stderr);
 	if (-1 == dup2(fd, STDERR_FILENO))
-		phy_error("cannot redirect stderr to \"%s\": %s", filename, phy_strerror(errno));
+		nt_error("cannot redirect stderr to \"%s\": %s", filename, nt_strerror(errno));
 
 	close(fd);
 
 	if (-1 == (fd = open(default_file, O_RDONLY)))
 	{
-		phy_error("cannot open \"%s\": %s", default_file, phy_strerror(errno));
+		nt_error("cannot open \"%s\": %s", default_file, nt_strerror(errno));
 		return FAIL;
 	}
 
 	if (-1 == dup2(fd, STDIN_FILENO))
-		phy_error("cannot redirect stdin to \"%s\": %s", default_file, phy_strerror(errno));
+		nt_error("cannot redirect stdin to \"%s\": %s", default_file, nt_strerror(errno));
 
 	close(fd);
 
@@ -112,24 +112,24 @@ int	phy_redirect_stdio(const char *filename)
 
 static void	rotate_log(const char *filename)
 {
-	phy_stat_t		buf;
-	phy_uint64_t		new_size;
-	static phy_uint64_t	old_size = PHY_MAX_UINT64; /* redirect stdout and stderr */
+	nt_stat_t		buf;
+	nt_uint64_t		new_size;
+	static nt_uint64_t	old_size = NT_MAX_UINT64; /* redirect stdout and stderr */
 
-	if (0 != phy_stat(filename, &buf))
+	if (0 != nt_stat(filename, &buf))
 	{
-		phy_redirect_stdio(filename);
+		nt_redirect_stdio(filename);
 		return;
 	}
 
 	new_size = buf.st_size;
 
-	if (0 != CONFIG_LOG_FILE_SIZE && (phy_uint64_t)CONFIG_LOG_FILE_SIZE * PHY_MEBIBYTE < new_size)
+	if (0 != CONFIG_LOG_FILE_SIZE && (nt_uint64_t)CONFIG_LOG_FILE_SIZE * NT_MEBIBYTE < new_size)
 	{
 		char	filename_old[MAX_STRING_LEN];
 
 		strscpy(filename_old, filename);
-		phy_strlcat(filename_old, ".old", MAX_STRING_LEN);
+		nt_strlcat(filename_old, ".old", MAX_STRING_LEN);
 		remove(filename_old);
 
 		if (0 != rename(filename, filename_old))
@@ -141,11 +141,11 @@ static void	rotate_log(const char *filename)
 				long		milliseconds;
 				struct tm	tm;
 
-				phy_get_time(&tm, &milliseconds, NULL);
+				nt_get_time(&tm, &milliseconds, NULL);
 
 				fprintf(log_file, "%6li:%.4d%.2d%.2d:%.2d%.2d%.2d.%03ld"
 						" cannot rename log file \"%s\" to \"%s\": %s\n",
-						phy_get_thread_id(),
+						nt_get_thread_id(),
 						tm.tm_year + 1900,
 						tm.tm_mon + 1,
 						tm.tm_mday,
@@ -155,13 +155,13 @@ static void	rotate_log(const char *filename)
 						milliseconds,
 						filename,
 						filename_old,
-						phy_strerror(errno));
+						nt_strerror(errno));
 
 				fprintf(log_file, "%6li:%.4d%.2d%.2d:%.2d%.2d%.2d.%03ld"
 						" Logfile \"%s\" size reached configured limit"
 						" LogFileSize but moving it to \"%s\" failed. The logfile"
 						" was truncated.\n",
-						phy_get_thread_id(),
+						nt_get_thread_id(),
 						tm.tm_year + 1900,
 						tm.tm_mon + 1,
 						tm.tm_mday,
@@ -172,7 +172,7 @@ static void	rotate_log(const char *filename)
 						filename,
 						filename_old);
 
-				phy_fclose(log_file);
+				nt_fclose(log_file);
 
 				new_size = 0;
 			}
@@ -182,7 +182,7 @@ static void	rotate_log(const char *filename)
 	}
 
 	if (old_size > new_size)
-		phy_redirect_stdio(filename);
+		nt_redirect_stdio(filename);
 
 	old_size = new_size;
 }
@@ -204,37 +204,37 @@ static void	lock_log(void)
 	sigaddset(&mask, SIGHUP);
 
 	if (0 > sigprocmask(SIG_BLOCK, &mask, &orig_mask))
-		phy_error("cannot set sigprocmask to block the user signal");
+		nt_error("cannot set sigprocmask to block the user signal");
 
-	phy_mutex_lock(log_access);
+	nt_mutex_lock(log_access);
 }
 
 static void	unlock_log(void)
 {
-	phy_mutex_unlock(log_access);
+	nt_mutex_unlock(log_access);
 
 	if (0 > sigprocmask(SIG_SETMASK, &orig_mask, NULL))
-		phy_error("cannot restore sigprocmask");
+		nt_error("cannot restore sigprocmask");
 }
 #else
 static void	lock_log(void)
 {
-#ifdef PHY_AGENT
-	if (0 == (PHY_MUTEX_LOGGING_DENIED & get_thread_global_mutex_flag()))
+#ifdef NT_AGENT
+	if (0 == (NT_MUTEX_LOGGING_DENIED & get_thread_global_mutex_flag()))
 #endif
 		LOCK_LOG;
 }
 
 static void	unlock_log(void)
 {
-#ifdef PHY_AGENT
-	if (0 == (PHY_MUTEX_LOGGING_DENIED & get_thread_global_mutex_flag()))
+#ifdef NT_AGENT
+	if (0 == (NT_MUTEX_LOGGING_DENIED & get_thread_global_mutex_flag()))
 #endif
 		UNLOCK_LOG;
 }
 #endif
 
-void	phy_handle_log(void)
+void	nt_handle_log(void)
 {
 	if (LOG_TYPE_FILE != log_type)
 		return;
@@ -246,10 +246,10 @@ void	phy_handle_log(void)
 	UNLOCK_LOG;
 }
 
-int	phy_open_log(int type, int level, const char *filename, char **error)
+int	nt_open_log(int type, int level, const char *filename, char **error)
 {
 	log_type = type;
-	phy_log_level = level;
+	nt_log_level = level;
 
 	if (LOG_TYPE_SYSTEM == type)
 	{
@@ -261,44 +261,44 @@ int	phy_open_log(int type, int level, const char *filename, char **error)
 
 		if (MAX_STRING_LEN <= strlen(filename))
 		{
-			*error = phy_strdup(*error, "too long path for logfile");
+			*error = nt_strdup(*error, "too long path for logfile");
 			return FAIL;
 		}
 
-		if (SUCCEED != phy_mutex_create(&log_access, PHY_MUTEX_LOG, error))
+		if (SUCCEED != nt_mutex_create(&log_access, NT_MUTEX_LOG, error))
 			return FAIL;
 
 		if (NULL == (log_file = fopen(filename, "a+")))
 		{
-			*error = phy_dsprintf(*error, "unable to open log file [%s]: %s", filename, phy_strerror(errno));
+			*error = nt_dsprintf(*error, "unable to open log file [%s]: %s", filename, nt_strerror(errno));
 			return FAIL;
 		}
 
 		strscpy(log_filename, filename);
-		phy_fclose(log_file);
+		nt_fclose(log_file);
 	}
 	else if (LOG_TYPE_CONSOLE == type || LOG_TYPE_UNDEFINED == type)
 	{
-		if (SUCCEED != phy_mutex_create(&log_access, PHY_MUTEX_LOG, error))
+		if (SUCCEED != nt_mutex_create(&log_access, NT_MUTEX_LOG, error))
 		{
-			*error = phy_strdup(*error, "unable to create mutex for standard output");
+			*error = nt_strdup(*error, "unable to create mutex for standard output");
 			return FAIL;
 		}
 
 		fflush(stderr);
 		if (-1 == dup2(STDOUT_FILENO, STDERR_FILENO))
-			phy_error("cannot redirect stderr to stdout: %s", phy_strerror(errno));
+			nt_error("cannot redirect stderr to stdout: %s", nt_strerror(errno));
 	}
 	else
 	{
-		*error = phy_strdup(*error, "unknown log type");
+		*error = nt_strdup(*error, "unknown log type");
 		return FAIL;
 	}
 
 	return SUCCEED;
 }
 
-void	phy_close_log(void)
+void	nt_close_log(void)
 {
 	if (LOG_TYPE_SYSTEM == log_type)
 	{
@@ -306,11 +306,11 @@ void	phy_close_log(void)
 	}
 	else if (LOG_TYPE_FILE == log_type || LOG_TYPE_CONSOLE == log_type || LOG_TYPE_UNDEFINED == log_type)
 	{
-		phy_mutex_destroy(&log_access);
+		nt_mutex_destroy(&log_access);
 	}
 }
 
-void	__phy_phy_log(int level, const char *fmt, ...)
+void	__nt_nt_log(int level, const char *fmt, ...)
 {
 	char		message[MAX_BUFFER_LEN];
 	va_list		args;
@@ -319,26 +319,26 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 	switch(level)
 	{
 		case LOG_LEVEL_CRIT:
-			phy_strlcat(title, "CRIT  ", PHRASE);
+			nt_strlcat(title, "CRIT  ", PHRASE);
 		break;
 		case LOG_LEVEL_ERR:
-			phy_strlcat(title, "ERR   ", PHRASE);
+			nt_strlcat(title, "ERR   ", PHRASE);
 		break;
 		case LOG_LEVEL_WARNING:
-			phy_strlcat(title, "WARN  ", PHRASE);
+			nt_strlcat(title, "WARN  ", PHRASE);
 		break;
 		case LOG_LEVEL_DEBUG:
-			phy_strlcat(title, "DEBUG ", PHRASE);
+			nt_strlcat(title, "DEBUG ", PHRASE);
 		break;
 		case LOG_LEVEL_TRACE:
-			phy_strlcat(title, "TRACE ", PHRASE);
+			nt_strlcat(title, "TRACE ", PHRASE);
 		break;
 		default:
-			phy_strlcat(title, "UNKNOW", PHRASE);
+			nt_strlcat(title, "UNKNOW", PHRASE);
 		break;
     }
-#ifndef PHY_PHY_LOG_CHECK
-	if (SUCCEED != PHY_CHECK_LOG_LEVEL(level))
+#ifndef NT_NT_LOG_CHECK
+	if (SUCCEED != NT_CHECK_LOG_LEVEL(level))
 		return;
 #endif
 	if (LOG_TYPE_FILE == log_type)
@@ -355,12 +355,12 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 			long		milliseconds;
 			struct tm	tm;
 
-			phy_get_time(&tm, &milliseconds, NULL);
+			nt_get_time(&tm, &milliseconds, NULL);
 
 			fprintf(log_file,
 					"[%s]%6li:%.4d%.2d%.2d:%.2d%.2d%.2d.%03ld ",
 					title,
-					phy_get_thread_id(),
+					nt_get_thread_id(),
 					tm.tm_year + 1900,
 					tm.tm_mon + 1,
 					tm.tm_mday,
@@ -376,17 +376,17 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 
 			fprintf(log_file, "\n");
 
-			phy_fclose(log_file);
+			nt_fclose(log_file);
 		}
 		else
 		{
-			phy_error("failed to open log file: %s", phy_strerror(errno));
+			nt_error("failed to open log file: %s", nt_strerror(errno));
 
 			va_start(args, fmt);
-			phy_vsnprintf(message, sizeof(message), fmt, args);
+			nt_vsnprintf(message, sizeof(message), fmt, args);
 			va_end(args);
 
-			phy_error("failed to write [%s] into log file", message);
+			nt_error("failed to write [%s] into log file", message);
 		}
 
 		UNLOCK_LOG;
@@ -401,11 +401,11 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 
 		LOCK_LOG;
 
-		phy_get_time(&tm, &milliseconds, NULL);
+		nt_get_time(&tm, &milliseconds, NULL);
 
 		fprintf(stdout,
 				"%6li:%.4d%.2d%.2d:%.2d%.2d%.2d.%03ld ",
-				phy_get_thread_id(),
+				nt_get_thread_id(),
 				tm.tm_year + 1900,
 				tm.tm_mon + 1,
 				tm.tm_mday,
@@ -429,7 +429,7 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 	}
 
 	va_start(args, fmt);
-	phy_vsnprintf(message, sizeof(message), fmt, args);
+	nt_vsnprintf(message, sizeof(message), fmt, args);
 	va_end(args);
 
 	if (LOG_TYPE_SYSTEM == log_type)
@@ -465,22 +465,22 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 		switch (level)
 		{
 			case LOG_LEVEL_CRIT:
-				phy_error("ERROR: %s", message);
+				nt_error("ERROR: %s", message);
 				break;
 			case LOG_LEVEL_ERR:
-				phy_error("Error: %s", message);
+				nt_error("Error: %s", message);
 				break;
 			case LOG_LEVEL_WARNING:
-				phy_error("Warning: %s", message);
+				nt_error("Warning: %s", message);
 				break;
 			case LOG_LEVEL_DEBUG:
-				phy_error("DEBUG: %s", message);
+				nt_error("DEBUG: %s", message);
 				break;
 			case LOG_LEVEL_TRACE:
-				phy_error("TRACE: %s", message);
+				nt_error("TRACE: %s", message);
 				break;
 			default:
-				phy_error("%s", message);
+				nt_error("%s", message);
 				break;
 		}
 
@@ -488,9 +488,9 @@ void	__phy_phy_log(int level, const char *fmt, ...)
 	}
 }
 
-int	phy_get_log_type(const char *logtype)
+int	nt_get_log_type(const char *logtype)
 {
-	const char	*logtypes[] = {PHY_OPTION_LOGTYPE_SYSTEM, PHY_OPTION_LOGTYPE_FILE, PHY_OPTION_LOGTYPE_CONSOLE};
+	const char	*logtypes[] = {NT_OPTION_LOGTYPE_SYSTEM, NT_OPTION_LOGTYPE_FILE, NT_OPTION_LOGTYPE_CONSOLE};
 	int		i;
 
 	for (i = 0; i < (int)ARRSIZE(logtypes); i++)
@@ -502,43 +502,76 @@ int	phy_get_log_type(const char *logtype)
 	return LOG_TYPE_UNDEFINED;
 }
 
-int	phy_validate_log_parameters(PHY_TASK_EX *task)
+int	nt_validate_log_parameters(NT_TASK_EX *task)
 {
 	if (LOG_TYPE_UNDEFINED == CONFIG_LOG_TYPE)
 	{
-		phy_log(LOG_LEVEL_CRIT, "invalid \"LogType\" configuration parameter: '%s'", CONFIG_LOG_TYPE_STR);
+		nt_log(LOG_LEVEL_CRIT, "invalid \"LogType\" configuration parameter: '%s'", CONFIG_LOG_TYPE_STR);
 		return FAIL;
 	}
 
-	if (LOG_TYPE_CONSOLE == CONFIG_LOG_TYPE && 0 == (task->flags & PHY_TASK_FLAG_FOREGROUND) &&
-			PHY_TASK_START == task->task)
+	if (LOG_TYPE_CONSOLE == CONFIG_LOG_TYPE && 0 == (task->flags & NT_TASK_FLAG_FOREGROUND) &&
+			NT_TASK_START == task->task)
 	{
-		phy_log(LOG_LEVEL_CRIT, "\"LogType\" \"console\" parameter can only be used with the"
+		nt_log(LOG_LEVEL_CRIT, "\"LogType\" \"console\" parameter can only be used with the"
 				" -f (--foreground) command line option");
 		return FAIL;
 	}
 
 	if (LOG_TYPE_FILE == CONFIG_LOG_TYPE && (NULL == CONFIG_LOG_FILE || '\0' == *CONFIG_LOG_FILE))
 	{
-		phy_log(LOG_LEVEL_CRIT, "\"LogType\" \"file\" parameter requires \"LogFile\" parameter to be set");
+		nt_log(LOG_LEVEL_CRIT, "\"LogType\" \"file\" parameter requires \"LogFile\" parameter to be set");
 		return FAIL;
 	}
 
 	return SUCCEED;
 }
 
-char	*phy_strerror(int errnum)
+char	*nt_strerror(int errnum)
 {
 	/* !!! Attention: static !!! Not thread-safe for Win32 */
-	static char	utf8_string[PHY_MESSAGE_BUF_SIZE];
+	static char	utf8_string[NT_MESSAGE_BUF_SIZE];
 
-	phy_snprintf(utf8_string, sizeof(utf8_string), "[%d] %s", errnum, strerror(errnum));
+	nt_snprintf(utf8_string, sizeof(utf8_string), "[%d] %s", errnum, strerror(errnum));
 
 	return utf8_string;
 }
 
 char	*strerror_from_system(unsigned long error)
 {
-	PHY_UNUSED(error);
-	return phy_strerror(errno);
+	NT_UNUSED(error);
+	return nt_strerror(errno);
+}
+
+//comms
+char	*nt_strerror_from_system(nt_syserror_t error)
+{
+#ifdef _WINDOWS
+	size_t		offset = 0;
+	wchar_t		wide_string[NT_MESSAGE_BUF_SIZE];
+	/* !!! Attention: static !!! Not thread-safe for Win32 */
+	static NT_THREAD_LOCAL char	utf8_string[NT_MESSAGE_BUF_SIZE];
+
+	offset += nt_snprintf(utf8_string, sizeof(utf8_string), "[0x%08lX] ", error);
+
+	/* we don't know the inserts so we pass NULL and enable appropriate flag */
+	if (0 == FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), wide_string, NT_MESSAGE_BUF_SIZE, NULL))
+	{
+		nt_snprintf(utf8_string + offset, sizeof(utf8_string) - offset,
+				"unable to find message text [0x%08lX]", GetLastError());
+
+		return utf8_string;
+	}
+
+	nt_unicode_to_utf8_static(wide_string, utf8_string + offset, (int)(sizeof(utf8_string) - offset));
+
+	nt_rtrim(utf8_string, "\r\n ");
+
+	return utf8_string;
+#else	/* not _WINDOWS */
+	NT_UNUSED(error);
+
+	return nt_strerror(errno);
+#endif	/* _WINDOWS */
 }

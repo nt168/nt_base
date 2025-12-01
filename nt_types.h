@@ -1,54 +1,55 @@
-#ifndef PHY_TYPES_H
-#define PHY_TYPES_H
+#ifndef NT_TYPES_H
+#define NT_TYPES_H
 //#include "sysinc.h"
 #include <stdint.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#	if !defined(PHY_THREAD_LOCAL)
-#		define PHY_THREAD_LOCAL
+#	if !defined(NT_THREAD_LOCAL)
+#		define NT_THREAD_LOCAL
 #	endif
 
 
-#	define phy_open(pathname, flags)	open(pathname, flags)
+#	define nt_open(pathname, flags)	open(pathname, flags)
 #	define PATH_SEPARATOR	'/'
 
-#	define phy_stat(path, buf)		stat(path, buf)
-#	define phy_fstat(fd, buf)		fstat(fd, buf)
+#	define nt_stat(path, buf)		stat(path, buf)
+#	define nt_fstat(fd, buf)		fstat(fd, buf)
 
-#	define phy_uint64_t	 uint64_t
-#	define PHY_FS_UI64	"%lu"
-#	define PHY_FS_UO64	"%lo"
-#	define PHY_FS_UX64	"%lx"
+#	define nt_uint64_t	 uint64_t
+#	define NT_FS_UI64	"%lu"
+#	define NT_FS_UO64	"%lo"
+#	define NT_FS_UX64	"%lx"
 
-#	define phy_int64_t	int64_t
-#	define PHY_FS_I64	"%ld"
-#	define PHY_FS_O64	"%lo"
-#	define PHY_FS_X64	"%lx"
+#	define nt_int64_t	int64_t
+#	define NT_FS_I64	"%ld"
+#	define NT_FS_O64	"%lo"
+#	define NT_FS_X64	"%lx"
 
-typedef uint32_t	phy_uint32_t;
+typedef uint32_t	nt_uint32_t;
+typedef int nt_syserror_t;
 
-typedef off_t	phy_offset_t;
-#	define phy_lseek(fd, offset, whence)	lseek(fd, (phy_offset_t)(offset), whence)
+typedef off_t	nt_offset_t;
+#	define nt_lseek(fd, offset, whence)	lseek(fd, (nt_offset_t)(offset), whence)
 
-#define PHY_FS_DBL		"%lf"
-#define PHY_FS_DBL_EXT(p)	"%." #p "lf"
-#define PHY_FS_DBL64		"%.17G"
+#define NT_FS_DBL		"%lf"
+#define NT_FS_DBL_EXT(p)	"%." #p "lf"
+#define NT_FS_DBL64		"%.17G"
 
 #ifdef HAVE_ORACLE
-#	define PHY_FS_DBL64_SQL	PHY_FS_DBL64 "d"
+#	define NT_FS_DBL64_SQL	NT_FS_DBL64 "d"
 #else
-#	define PHY_FS_DBL64_SQL	PHY_FS_DBL64
+#	define NT_FS_DBL64_SQL	NT_FS_DBL64
 #endif
 
-#define PHY_PTR_SIZE		sizeof(void *)
-#define PHY_FS_SIZE_T		PHY_FS_UI64
-#define PHY_FS_SSIZE_T		PHY_FS_I64
-#define PHY_FS_TIME_T		PHY_FS_I64
-#define phy_fs_size_t		phy_uint64_t
-#define phy_fs_ssize_t		phy_int64_t
-#define phy_fs_time_t		phy_int64_t
+#define NT_PTR_SIZE		sizeof(void *)
+#define NT_FS_SIZE_T		NT_FS_UI64
+#define NT_FS_SSIZE_T		NT_FS_I64
+#define NT_FS_TIME_T		NT_FS_I64
+#define nt_fs_size_t		nt_uint64_t
+#define nt_fs_ssize_t		nt_int64_t
+#define nt_fs_time_t		nt_int64_t
 
 #ifndef S_ISREG
 #	define S_ISREG(x) (((x) & S_IFMT) == S_IFREG)
@@ -58,24 +59,41 @@ typedef off_t	phy_offset_t;
 #	define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 #endif
 
-#define PHY_STR2UINT64(uint, string) is_uint64(string, &uint)
-#define PHY_OCT2UINT64(uint, string) sscanf(string, PHY_FS_UO64, &uint)
-#define PHY_HEX2UINT64(uint, string) sscanf(string, PHY_FS_UX64, &uint)
+#define NT_STR2UINT64(uint, string) is_uint64(string, &uint)
+#define NT_OCT2UINT64(uint, string) sscanf(string, NT_FS_UO64, &uint)
+#define NT_HEX2UINT64(uint, string) sscanf(string, NT_FS_UX64, &uint)
 
-#define PHY_STR2UCHAR(var, string) var = (unsigned char)atoi(string)
+#define NT_STR2UCHAR(var, string) var = (unsigned char)atoi(string)
 
-#define PHY_CONST_STRING(str) "" str
-#define PHY_CONST_STRLEN(str) (sizeof(PHY_CONST_STRING(str)) - 1)
+#define NT_CONST_STRING(str) "" str
+#define NT_CONST_STRLEN(str) (sizeof(NT_CONST_STRING(str)) - 1)
 
 typedef struct
 {
-	phy_uint64_t	lo;
-	phy_uint64_t	hi;
+	nt_uint64_t	lo;
+	nt_uint64_t	hi;
 }
-phy_uint128_t;
+nt_uint128_t;
 
-#define PHY_SIZE_T_ALIGN8(size)	(((size) + 7) & ~(size_t)7)
-#define PHY_IS_TOP_BIT_SET(x)	(0 != ((__UINT64_C(1) << ((sizeof(x) << 3) - 1)) & (x)))
-typedef struct phy_variant phy_variant_t;
+#define NT_SIZE_T_ALIGN8(size)	(((size) + 7) & ~(size_t)7)
+#define NT_IS_TOP_BIT_SET(x)	(0 != ((__UINT64_C(1) << ((sizeof(x) << 3) - 1)) & (x)))
+typedef struct nt_variant nt_variant_t;
+
+
+
+#define SUCCEED_PARTIAL	2
+#define	SUCCEED		0
+#define	FAIL		-1
+#define	NOTSUPPORTED	-2
+#define	NETWORK_ERROR	-3
+#define	TIMEOUT_ERROR	-4
+#define	AGENT_ERROR	-5
+#define	GATEWAY_ERROR	-6
+#define	CONFIG_ERROR	-7
+#define	SIG_ERROR	-8
+#define	CONNECT_ERROR	-9
+#define	SEND_ERROR	-10
+#define	RECV_ERROR	-11
+
 
 #endif

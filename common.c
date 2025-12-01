@@ -4,21 +4,21 @@
 
 extern const char	*progname;
 extern pthread_t tid;
-static PHY_THREAD_LOCAL volatile sig_atomic_t	phy_timed_out;
+static NT_THREAD_LOCAL volatile sig_atomic_t	nt_timed_out;
 
-long int phy_get_thread_id()
+long int nt_get_thread_id()
 {
 	return (long int)getpid();
 }
 
 
-void	phy_error(const char *fmt, ...)
+void	nt_error(const char *fmt, ...)
 {
 	va_list	args;
 
 	va_start(args, fmt);
 
-	fprintf(stderr, "%s [%li]: ", progname, phy_get_thread_id());
+	fprintf(stderr, "%s [%li]: ", progname, nt_get_thread_id());
 	vfprintf(stderr, fmt, args);
 	fprintf(stderr, "\n");
 	fflush(stderr);
@@ -26,7 +26,7 @@ void	phy_error(const char *fmt, ...)
 	va_end(args);
 }
 
-size_t	phy_vsnprintf(char *str, size_t count, const char *fmt, va_list args)
+size_t	nt_vsnprintf(char *str, size_t count, const char *fmt, va_list args)
 {
 	int	written_len = 0;
 
@@ -43,19 +43,19 @@ size_t	phy_vsnprintf(char *str, size_t count, const char *fmt, va_list args)
 }
 
 
-size_t	phy_snprintf(char *str, size_t count, const char *fmt, ...)
+size_t	nt_snprintf(char *str, size_t count, const char *fmt, ...)
 {
 	size_t	written_len;
 	va_list	args;
 
 	va_start(args, fmt);
-	written_len = phy_vsnprintf(str, count, fmt, args);
+	written_len = nt_vsnprintf(str, count, fmt, args);
 	va_end(args);
 
 	return written_len;
 }
 
-size_t	phy_strlcpy(char *dst, const char *src, size_t siz)
+size_t	nt_strlcpy(char *dst, const char *src, size_t siz)
 {
 	const char	*s = src;
 
@@ -70,7 +70,7 @@ size_t	phy_strlcpy(char *dst, const char *src, size_t siz)
 	return s - src;	/* count does not include null */
 }
 
-void	phy_strlcat(char *dst, const char *src, size_t siz)
+void	nt_strlcat(char *dst, const char *src, size_t siz)
 {
 	while ('\0' != *dst)
 	{
@@ -78,10 +78,10 @@ void	phy_strlcat(char *dst, const char *src, size_t siz)
 		siz--;
 	}
 
-	phy_strlcpy(dst, src, siz);
+	nt_strlcpy(dst, src, siz);
 }
 
-void	phy_get_time(struct tm *tm, long *milliseconds, phy_timezone_t *tz)
+void	nt_get_time(struct tm *tm, long *milliseconds, nt_timezone_t *tz)
 {
 
 	struct timeval	current_time;
@@ -92,7 +92,7 @@ void	phy_get_time(struct tm *tm, long *milliseconds, phy_timezone_t *tz)
 	if (NULL != tz)
 	{
 		long	offset;
-	offset = phy_get_timezone_offset(current_time.tv_sec, tm);
+	offset = nt_get_timezone_offset(current_time.tv_sec, tm);
 
 	tz->tz_sign = (0 <= offset ? '+' : '-');
 	tz->tz_hour = labs(offset) / SEC_PER_HOUR;
@@ -106,7 +106,7 @@ static int	is_leap_year(int year)
 	return 0 == year % 4 && (0 != year % 100 || 0 == year % 400) ? SUCCEED : FAIL;
 }
 
-long	phy_get_timezone_offset(time_t t, struct tm *tm)
+long	nt_get_timezone_offset(time_t t, struct tm *tm)
 {
 	long		offset;
 #ifndef HAVE_TM_TM_GMTOFF
@@ -134,7 +134,7 @@ long	phy_get_timezone_offset(time_t t, struct tm *tm)
 	return offset;
 }
 
-char	*phy_dvsprintf(char *dest, const char *f, va_list args)
+char	*nt_dvsprintf(char *dest, const char *f, va_list args)
 {
 	char	*string = NULL;
 	int	n, size = MAX_STRING_LEN >> 1;
@@ -143,7 +143,7 @@ char	*phy_dvsprintf(char *dest, const char *f, va_list args)
 
 	while (1)
 	{
-		string = (char *)phy_malloc(string, size);
+		string = (char *)nt_malloc(string, size);
 
 		va_copy(curr, args);
 		n = vsnprintf(string, size, f, curr);
@@ -158,22 +158,22 @@ char	*phy_dvsprintf(char *dest, const char *f, va_list args)
 		else
 			size = n + 1;	/* n bytes + trailing '\0' */
 
-		phy_free(string);
+		nt_free(string);
 	}
 
-	phy_free(dest);
+	nt_free(dest);
 
 	return string;
 }
 
-char	*phy_dsprintf(char *dest, const char *f, ...)
+char	*nt_dsprintf(char *dest, const char *f, ...)
 {
 	char	*string;
 	va_list args;
 
 	va_start(args, f);
 
-	string = phy_dvsprintf(dest, f, args);
+	string = nt_dvsprintf(dest, f, args);
 
 	va_end(args);
 
@@ -181,7 +181,7 @@ char	*phy_dsprintf(char *dest, const char *f, ...)
 }
 
 
-char	*phy_strdcat(char *dest, const char *src)
+char	*nt_strdcat(char *dest, const char *src)
 {
 	size_t	len_dest, len_src;
 
@@ -189,35 +189,35 @@ char	*phy_strdcat(char *dest, const char *src)
 		return dest;
 
 	if (NULL == dest)
-		return phy_strdup(NULL, src);
+		return nt_strdup(NULL, src);
 
 	len_dest = strlen(dest);
 	len_src = strlen(src);
 
-	dest = (char *)phy_realloc(dest, len_dest + len_src + 1);
+	dest = (char *)nt_realloc(dest, len_dest + len_src + 1);
 
-	phy_strlcpy(dest + len_dest, src, len_src + 1);
+	nt_strlcpy(dest + len_dest, src, len_src + 1);
 
 	return dest;
 }
 
-char	*phy_strdcatf(char *dest, const char *f, ...)
+char	*nt_strdcatf(char *dest, const char *f, ...)
 {
 	char	*string, *result;
 	va_list	args;
 
 	va_start(args, f);
-	string = phy_dvsprintf(NULL, f, args);
+	string = nt_dvsprintf(NULL, f, args);
 	va_end(args);
 
-	result = phy_strdcat(dest, string);
+	result = nt_strdcat(dest, string);
 
-	phy_free(string);
+	nt_free(string);
 
 	return result;
 }
 
-void	*phy_calloc2(const char *filename, int line, void *old, size_t nmemb, size_t size)
+void	*nt_calloc2(const char *filename, int line, void *old, size_t nmemb, size_t size)
 {
 	int	max_attempts;
 	void	*ptr = NULL;
@@ -225,8 +225,8 @@ void	*phy_calloc2(const char *filename, int line, void *old, size_t nmemb, size_
 	/* old pointer must be NULL */
 	if (NULL != old)
 	{
-		phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_calloc: allocating already allocated memory. "
-				"Please report this to Phy developers.",
+		nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_calloc: allocating already allocated memory. "
+				"Please report this to Nt developers.",
 				filename, line);
 	}
 
@@ -239,13 +239,13 @@ void	*phy_calloc2(const char *filename, int line, void *old, size_t nmemb, size_
 	if (NULL != ptr)
 		return ptr;
 
-	phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_calloc: out of memory. Requested " PHY_FS_SIZE_T " bytes.",
-			filename, line, (phy_fs_size_t)size);
+	nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_calloc: out of memory. Requested " NT_FS_SIZE_T " bytes.",
+			filename, line, (nt_fs_size_t)size);
 
 	exit(EXIT_FAILURE);
 }
 
-void	*phy_malloc2(const char *filename, int line, void *old, size_t size)
+void	*nt_malloc2(const char *filename, int line, void *old, size_t size)
 {
 	int	max_attempts;
 	void	*ptr = NULL;
@@ -253,8 +253,8 @@ void	*phy_malloc2(const char *filename, int line, void *old, size_t size)
 	/* old pointer must be NULL */
 	if (NULL != old)
 	{
-		phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_malloc: allocating already allocated memory. "
-				"Please report this to Phy developers.",
+		nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_malloc: allocating already allocated memory. "
+				"Please report this to Nt developers.",
 				filename, line);
 	}
 
@@ -267,13 +267,13 @@ void	*phy_malloc2(const char *filename, int line, void *old, size_t size)
 	if (NULL != ptr)
 		return ptr;
 
-	phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_malloc: out of memory. Requested " PHY_FS_SIZE_T " bytes.",
-			filename, line, (phy_fs_size_t)size);
+	nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_malloc: out of memory. Requested " NT_FS_SIZE_T " bytes.",
+			filename, line, (nt_fs_size_t)size);
 
 	exit(EXIT_FAILURE);
 }
 
-void	*phy_realloc2(const char *filename, int line, void *old, size_t size)
+void	*nt_realloc2(const char *filename, int line, void *old, size_t size)
 {
 	int	max_attempts;
 	void	*ptr = NULL;
@@ -287,18 +287,18 @@ void	*phy_realloc2(const char *filename, int line, void *old, size_t size)
 	if (NULL != ptr)
 		return ptr;
 
-	phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_realloc: out of memory. Requested " PHY_FS_SIZE_T " bytes.",
-			filename, line, (phy_fs_size_t)size);
+	nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_realloc: out of memory. Requested " NT_FS_SIZE_T " bytes.",
+			filename, line, (nt_fs_size_t)size);
 
 	exit(EXIT_FAILURE);
 }
 
-char	*phy_strdup2(const char *filename, int line, char *old, const char *str)
+char	*nt_strdup2(const char *filename, int line, char *old, const char *str)
 {
 	int	retry;
 	char	*ptr = NULL;
 
-	phy_free(old);
+	nt_free(old);
 
 	for (retry = 10; 0 < retry && NULL == ptr; ptr = strdup(str), retry--)
 		;
@@ -306,13 +306,117 @@ char	*phy_strdup2(const char *filename, int line, char *old, const char *str)
 	if (NULL != ptr)
 		return ptr;
 
-	phy_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] phy_strdup: out of memory. Requested " PHY_FS_SIZE_T " bytes.",
-			filename, line, (phy_fs_size_t)(strlen(str) + 1));
+	nt_log(LOG_LEVEL_CRIT, "[file:%s,line:%d] nt_strdup: out of memory. Requested " NT_FS_SIZE_T " bytes.",
+			filename, line, (nt_fs_size_t)(strlen(str) + 1));
 
 	exit(EXIT_FAILURE);
 }
 
-void	*phy_guaranteed_memset(void *v, int c, size_t n)
+
+int	nt_vsnprintf_check_len(const char *fmt, va_list args)
+{
+	int	rv;
+
+	if (0 > (rv = vsnprintf(NULL, 0, fmt, args)))
+	{
+		THIS_SHOULD_NEVER_HAPPEN;
+		exit(EXIT_FAILURE);
+	}
+
+	return rv;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Purpose: Secure version of snprintf function.                              *
+ *          Add zero character at the end of string.                          *
+ *          Reallocs memory if not enough.                                    *
+ *                                                                            *
+ * Parameters: str       - [IN/OUT] destination buffer pointer                *
+ *             alloc_len - [IN/OUT] already allocated memory                  *
+ *             offset    - [IN/OUT] offset for writing                        *
+ *             fmt       - [IN] format                                        *
+ *                                                                            *
+ ******************************************************************************/
+void	nt_snprintf_alloc(char **str, size_t *alloc_len, size_t *offset, const char *fmt, ...)
+{
+	va_list	args;
+	size_t	avail_len, written_len;
+
+#if defined(__hpux)
+	if (SUCCEED != nt_hpux_vsnprintf_is_c99())
+	{
+#define INITIAL_ALLOC_LEN	128
+		int	bytes_written = 0;
+
+		if (NULL == *str)
+		{
+			*alloc_len = INITIAL_ALLOC_LEN;
+			*str = (char *)nt_malloc(NULL, *alloc_len);
+			*offset = 0;
+		}
+
+		while (1)
+		{
+			avail_len = *alloc_len - *offset;
+			va_start(args, fmt);
+			bytes_written = vsnprintf(*str + *offset, avail_len, fmt, args);
+			va_end(args);
+
+			if (0 <= bytes_written)
+				break;
+
+			if (-1 == bytes_written)
+			{
+				*alloc_len *= 2;
+				*str = (char *)nt_realloc(*str, *alloc_len);
+				continue;
+			}
+
+			nt_log(LOG_LEVEL_CRIT, "vsnprintf() returned %d", bytes_written);
+
+			THIS_SHOULD_NEVER_HAPPEN;
+			exit(EXIT_FAILURE);
+		}
+
+		*offset += bytes_written;
+
+		return;
+#undef INITIAL_ALLOC_LEN
+	}
+	/* HP-UX vsnprintf() looks C99-compliant, proceed with common implementation */
+#endif
+retry:
+	if (NULL == *str)
+	{
+		va_start(args, fmt);
+
+		/* nt_vsnprintf_check_len() cannot return negative result. */
+		/* '\0' + one byte to prevent operation retry. */
+		*alloc_len = (size_t)nt_vsnprintf_check_len(fmt, args) + 2;
+
+		va_end(args);
+		*offset = 0;
+		*str = (char *)nt_malloc(*str, *alloc_len);
+	}
+
+	avail_len = *alloc_len - *offset;
+	va_start(args, fmt);
+	written_len = nt_vsnprintf(*str + *offset, avail_len, fmt, args);
+	va_end(args);
+
+	if (written_len == avail_len - 1)
+	{
+		*alloc_len *= 2;
+		*str = (char *)nt_realloc(*str, *alloc_len);
+
+		goto retry;
+	}
+
+	*offset += written_len;
+}
+
+void	*nt_guaranteed_memset(void *v, int c, size_t n)
 {
 	volatile signed char	*p = (volatile signed char *)v;
 
@@ -322,12 +426,12 @@ void	*phy_guaranteed_memset(void *v, int c, size_t n)
 	return v;
 }
 
-void	phy_alarm_flag_set(void)
+void	nt_alarm_flag_set(void)
 {
-	phy_timed_out = 1;
+	nt_timed_out = 1;
 }
 
-void	phy_free_service_resources(void)
+void	nt_free_service_resources(void)
 {
 	sigset_t	set;
 	sigemptyset(&set);
@@ -340,11 +444,11 @@ void	phy_free_service_resources(void)
 }
 
 
-void	phy_on_exit(void)
+void	nt_on_exit(void)
 {
 	pthread_cancel(tid);
     pthread_join(tid,NULL);
-	printf("phy_on_exit() called\n");
-	phy_free_service_resources();
+	printf("nt_on_exit() called\n");
+	nt_free_service_resources();
 	exit(EXIT_SUCCESS);
 }
