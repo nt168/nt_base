@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) 调试 nt_base",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Debug/nt_base",
+      "args": [],                             // nt_base 的命令行参数需要的话在这里填
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/Debug",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "make"
+    },
+    {
+      "name": "(gdb) 调试 comms",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Debug/comms/comms",
+      "args": [],                             // comms 的命令行参数在这里填
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/Debug/comms",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "make"
+    }
+  ]
+}
