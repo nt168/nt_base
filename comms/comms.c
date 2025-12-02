@@ -714,6 +714,8 @@ ssize_t	nt_tcp_write(nt_socket_t *s, const char *buf, size_t len, short *event)
 {
 	nt_pollfd_t	pd;
 	ssize_t		n, offset = 0;
+	if (NULL != event)
+		*event = 0;
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	if (NULL != s->tls_ctx)	/* TLS connection */
@@ -749,11 +751,11 @@ ssize_t	nt_tcp_write(nt_socket_t *s, const char *buf, size_t len, short *event)
 				return NT_PROTO_ERROR;
 			}
 
-			if (NULL != event)
-			{
-				*event = POLLOUT;
-				return offset;
-			}
+//			if (NULL != event)
+//			{
+//				*event = POLLOUT;
+//				return offset;
+//			}
 
 			if (-1 == (rc = nt_socket_poll(&pd, 1, NT_SOCKET_POLL_TIMEOUT)))
 			{
