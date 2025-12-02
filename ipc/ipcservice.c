@@ -15,9 +15,10 @@
 #ifdef IPCSERVICE_STANDALONE
 #include "standalone_nt.h"
 #else
-#include "ntcommon.h"
+#include "nt_common.h"
 #endif
 
+#define HAVE_IPCSERVICE
 #ifdef HAVE_IPCSERVICE
 
 #ifdef HAVE_LIBEVENT
@@ -26,10 +27,11 @@
 #	include <event2/util.h>
 #endif
 
-#include "ntipcservice.h"
-#include "ntalgo.h"
-#include "ntstr.h"
-#include "nttime.h"
+#include "nt_ipcservice.h"
+#include "nt_algo.h"
+#include "nt_str.h"
+#include "nt_time.h"
+#include "nt_log.h"
 
 #define NT_IPC_DATA_DUMP_SIZE		128
 

@@ -1,5 +1,5 @@
-#if 0
-#include "ipcservice.c"
+
+#include "nt_ipcservice.h"
 
 int main(void)
 {
@@ -15,4 +15,3 @@ int main(void)
     nt_ipc_service_free_env();
     return 0;
 }
-#endif
