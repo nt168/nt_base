@@ -1,8 +1,22 @@
 CC      := gcc
-CFLAGS  := -Wall -Wextra -g -O2 -I. -I..
+WARNINGS := -Wall -Wextra
+CSTD    := -std=c11
+
+CONFIG ?= Release
+BUILD_ROOT ?= $(abspath ../build)
+OUT_DIR := $(BUILD_ROOT)/$(CONFIG)/comms
+
+CPPFLAGS := -I. -I..
+CFLAGS  := $(CSTD) $(WARNINGS) -pthread
 LDFLAGS := -lpthread
 
-TARGET  := main
+ifeq ($(CONFIG),Debug)
+  CFLAGS += -g -O0 -DDEBUG
+else
+  CFLAGS += -O2
+endif
+
+TARGET  := $(OUT_DIR)/comms
 
 # comms 子目录里的源码
 COMMS_SRCS := \
@@ -33,21 +47,25 @@ NT_BASE_SRCS := \
     ../nt_phreads.c
 
 SRCS := $(COMMS_SRCS) $(NT_BASE_SRCS) main.c
+OBJS := $(addprefix $(OUT_DIR)/,$(notdir $(SRCS:.c=.o)))
 
-OBJS := $(SRCS:.c=.o)
+VPATH := . ..
 
 .PHONY: all clean
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(OUT_DIR):
+	mkdir -p $(OUT_DIR)
+
+$(TARGET): $(OBJS) | $(OUT_DIR)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OUT_DIR)/%.o: %.c | $(OUT_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-../%.o: ../%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OUT_DIR)/%.o: ../%.c | $(OUT_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILD_ROOT)

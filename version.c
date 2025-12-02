@@ -12,7 +12,7 @@
 ** If not, see <https://www.gnu.org/licenses/>.
 **/
 
-#include "nt_version.h"
+#include "version.h"
 #include "nt_types.h"
 #include "common.h"
 

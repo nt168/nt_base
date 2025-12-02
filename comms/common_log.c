@@ -19,6 +19,12 @@ static NT_THREAD_LOCAL int	log_level_change = LOG_LEVEL_UNCHANGED;
 static NT_THREAD_LOCAL char	log_component_name[LOG_COMPONENT_NAME_LEN + 1];
 #undef LOG_COMPONENT_NAME_LEN
 
+static void nt_common_log_silence_unused(void)
+{
+	NT_UNUSED(log_level_change);
+	NT_UNUSED(log_component_name);
+}
+
 // void	nt_init_library_common(nt_log_func_t log_func, nt_get_progname_f get_progname, nt_backtrace_f backtrace)
 // {
 // 	log_func_callback = log_func;
@@ -28,6 +34,7 @@ static NT_THREAD_LOCAL char	log_component_name[LOG_COMPONENT_NAME_LEN + 1];
 
 void	nt_this_should_never_happen_backtrace(void)
 {
+	nt_common_log_silence_unused();
 	if (NULL != backtrace_cb)
 		backtrace_cb();
 }

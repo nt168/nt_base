@@ -54,7 +54,9 @@ int	nt_wis_uint(const wchar_t *wide_string);
 const char	*nt_print_double(char *buffer, size_t size, double val);
 int		nt_number_parse(const char *number, int *len);
 
+#ifndef NT_STR2UINT64
 #define NT_STR2UINT64(uint, string) nt_is_uint64(string, &uint)
+#endif
 
 int	nt_str2uint64(const char *str, const char *suffixes, nt_uint64_t *value);
 

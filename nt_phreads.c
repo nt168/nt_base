@@ -90,6 +90,7 @@ NT_THREAD_HANDLE nt_thread_start(NT_THREAD_ENTRY_POINTER(handler), nt_thread_arg
 
 int	MAIN_SERVER_ENTRY(int flags)
 {
+        NT_UNUSED(flags);
 //	nt_thread_start(nt_net_server, NULL);
 //	nt_thread_start(messagechannel, NULL);
 //	nt_thread_start(agents_synchronizer, NULL);
@@ -323,6 +324,9 @@ void log_fatal_signal(int sig, siginfo_t *siginfo, void *context)
 
 void fatal_signal_handler(int sig, siginfo_t *siginfo, void *context)
 {
+        NT_UNUSED(sig);
+        NT_UNUSED(siginfo);
+        NT_UNUSED(context);
 //	log_fatal_signal(sig, siginfo, context);
 //	nt_log_fatal_info(context, NT_FATAL_LOG_FULL_INFO);
 	exit_with_failure();

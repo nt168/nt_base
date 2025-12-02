@@ -49,6 +49,13 @@
 #define HOST_TLS_ISSUER_LEN             4096                            /* for up to 1024 UTF-8 characters */
 #define HOST_TLS_ISSUER_LEN_MAX         (HOST_TLS_ISSUER_LEN + 1)
 
+/* commonly used helpers */
+void    nt_snprintf_alloc(char **str, size_t *alloc_len, size_t *offset, const char *fmt, ...);
+int     nt_validate_hostname(const char *hostname);
+const char      *nt_result_string(int result);
+nt_uint64_t      suffix2factor(char c);
+void            nt_this_should_never_happen_backtrace(void);
+
 #if defined(__GNUC__) && __GNUC__ >= 7
 #	define NT_FALLTHROUGH	__attribute__ ((fallthrough))
 #else

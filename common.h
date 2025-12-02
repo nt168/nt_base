@@ -1,6 +1,14 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -14,6 +22,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <string.h>
+#include <sys/time.h>
 #include <assert.h>
 #include <semaphore.h>
 #include <time.h>

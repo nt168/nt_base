@@ -13,6 +13,7 @@
 #include "nt_time.h"
 #include "nt_crypto.h"
 #include "../nt_types.h"
+#include <netdb.h>
 
 #ifdef _WINDOWS
 #	ifndef _WIN32_WINNT_WIN7

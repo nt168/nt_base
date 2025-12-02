@@ -14,6 +14,8 @@
 #include <arpa/inet.h>    /* inet_pton, inet_ntop, inet_ntoa */
 #include <poll.h>         /* struct pollfd, POLLIN, POLLOUT, POLLERR... */
 
+struct addrinfo;
+
 
 
 

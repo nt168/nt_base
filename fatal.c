@@ -77,6 +77,8 @@ void	nt_backtrace(void)
 
 void	nt_log_fatal_info(void *context, unsigned int flags)
 {
+
+        NT_UNUSED(context);
 #ifdef	HAVE_SYS_UCONTEXT_H
 
 #if defined(REG_EIP) || defined(REG_RIP)
