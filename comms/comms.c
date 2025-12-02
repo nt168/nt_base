@@ -1,5 +1,6 @@
 #include "comms.h"
 #include "nt_comms.h"
+#include "nt_common.h"
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 #include "tls.h"
