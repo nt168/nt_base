@@ -17,6 +17,8 @@ else
 endif
 
 TARGET  := $(OUT_DIR)/comms
+SERVER  := $(OUT_DIR)/server
+CLIENT  := $(OUT_DIR)/client
 
 # comms 子目录里的源码
 COMMS_SRCS := \
@@ -46,20 +48,33 @@ NT_BASE_SRCS := \
     ../nt_mutexs.c \
     ../nt_phreads.c
 
-SRCS := $(COMMS_SRCS) $(NT_BASE_SRCS) main.c
-OBJS := $(addprefix $(OUT_DIR)/,$(notdir $(SRCS:.c=.o)))
+COMMON_SRCS := $(COMMS_SRCS) $(NT_BASE_SRCS)
+
+SRCS       := $(COMMON_SRCS) main.c
+SERVER_SRCS := $(COMMON_SRCS) server.c
+CLIENT_SRCS := $(COMMON_SRCS) client.c
+
+OBJS        := $(addprefix $(OUT_DIR)/,$(notdir $(SRCS:.c=.o)))
+SERVER_OBJS := $(addprefix $(OUT_DIR)/,$(notdir $(SERVER_SRCS:.c=.o)))
+CLIENT_OBJS := $(addprefix $(OUT_DIR)/,$(notdir $(CLIENT_SRCS:.c=.o)))
 
 VPATH := . ..
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: $(TARGET) $(SERVER) $(CLIENT)
 
 $(OUT_DIR):
 	mkdir -p $(OUT_DIR)
 
 $(TARGET): $(OBJS) | $(OUT_DIR)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+
+$(SERVER): $(SERVER_OBJS) | $(OUT_DIR)
+	$(CC) $(CFLAGS) -o $@ $(SERVER_OBJS) $(LDFLAGS)
+
+$(CLIENT): $(CLIENT_OBJS) | $(OUT_DIR)
+	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJS) $(LDFLAGS)
 
 $(OUT_DIR)/%.o: %.c | $(OUT_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
