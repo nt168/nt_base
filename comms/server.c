@@ -125,8 +125,12 @@ int main(int argc, char **argv)
 
     for (;;)
     {
-        if (FAIL == nt_tcp_accept(&listen_sock, NT_TCP_SEC_UNENCRYPTED, 5, NULL, NULL))
-        {
+        int accept_rc = nt_tcp_accept(&listen_sock, NT_TCP_SEC_UNENCRYPTED, 5, NULL, NULL);
+        if (TIMEOUT_ERROR == accept_rc)
+            continue;
+
+        if (FAIL == accept_rc)
+	{
             nt_log(LOG_LEVEL_CRIT, "nt_tcp_accept failed: %s", nt_socket_strerror());
             break;
         }
